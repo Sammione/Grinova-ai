@@ -7,21 +7,32 @@ from app.core.config import settings
 
 class RAGService:
     def __init__(self):
-        self.embeddings = OpenAIEmbeddings(openai_api_key=settings.OPENAI_API_KEY)
         self.persist_directory = "db/chroma"
-        self._init_vector_store()
+        self.vector_store = None
+        self.embeddings = None
 
     def _init_vector_store(self):
-        if not os.path.exists(self.persist_directory):
-            os.makedirs(self.persist_directory)
-        
-        self.vector_store = Chroma(
-            persist_directory=self.persist_directory,
-            embedding_function=self.embeddings,
-            collection_name="sustainability_docs"
-        )
+        if self.vector_store is not None:
+            return
+
+        try:
+            if not os.path.exists(self.persist_directory):
+                os.makedirs(self.persist_directory)
+            
+            self.embeddings = OpenAIEmbeddings(openai_api_key=settings.OPENAI_API_KEY)
+            self.vector_store = Chroma(
+                persist_directory=self.persist_directory,
+                embedding_function=self.embeddings,
+                collection_name="sustainability_docs"
+            )
+        except Exception as e:
+            print(f"Warning: Failed to initialize Vector Store. Is OPENAI_API_KEY valid? Error: {e}")
 
     async def add_documents(self, texts: List[str], metadatas: List[dict] = None):
+        self._init_vector_store()
+        if not self.vector_store:
+            raise ValueError("Vector store not initialized. Check OpenAI API key.")
+            
         text_splitter = RecursiveCharacterTextSplitter(
             chunk_size=1000,
             chunk_overlap=100
@@ -31,6 +42,10 @@ class RAGService:
         self.vector_store.persist()
 
     async def query(self, query: str, framework_id: str = None, k: int = 4) -> str:
+        self._init_vector_store()
+        if not self.vector_store:
+            return "Knowledge base not available. Please configure OpenAI API key."
+            
         filter_dict = {}
         if framework_id:
             filter_dict["framework_id"] = framework_id
