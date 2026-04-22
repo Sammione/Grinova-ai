@@ -8,10 +8,16 @@ class Settings(BaseSettings):
     OPENAI_API_KEY: str
     DATABASE_URL: str
     
+    @property
+    def SQLALCHEMY_DATABASE_URI(self) -> str:
+        if self.DATABASE_URL.startswith("postgres://"):
+            return self.DATABASE_URL.replace("postgres://", "postgresql://", 1)
+        return self.DATABASE_URL
+
     JWT_SECRET: str
     JWT_ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 8  # 8 days
 
-    model_config = SettingsConfigDict(env_file=".env", case_sensitive=True)
+    model_config = SettingsConfigDict(env_file=".env", case_sensitive=True, extra="ignore")
 
 settings = Settings()
