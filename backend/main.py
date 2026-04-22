@@ -1,7 +1,10 @@
 # Fix for SQLite version issue on Render with ChromaDB
-__import__('pysqlite3')
-import sys
-sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
+try:
+    __import__('pysqlite3')
+    import sys
+    sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
+except Exception as e:
+    print(f"Warning: Failed to override sqlite3 with pysqlite3. Error: {e}")
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
