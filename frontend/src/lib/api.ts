@@ -1,71 +1,55 @@
 import axios from 'axios';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
-
-export const apiClient = axios.create({
-  baseURL: API_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
+// Mock delays to simulate network requests
+const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 export const aiApi = {
   getFrameworks: async () => {
-    const response = await apiClient.get('/ai/frameworks');
-    return response.data;
+    await delay(800);
+    return [
+      { id: 'GRI', name: 'Global Reporting Initiative' },
+      { id: 'SASB', name: 'Sustainability Accounting Standards Board' },
+      { id: 'TCFD', name: 'Task Force on Climate-related Financial Disclosures' },
+      { id: 'IFRS', name: 'IFRS Sustainability Disclosure Standards' }
+    ];
   },
   chat: async (query: string, frameworkId: string, context: string = '') => {
-    const response = await apiClient.post('/ai/chat', {
-      query,
-      framework_id: frameworkId,
-      context,
-    });
-    return response.data;
+    await delay(1500);
+    return { 
+      response: `[Simulated AI Analysis] Based on the ${frameworkId} framework, your query "${query}" has been analyzed. We recommend aligning your disclosures with the corresponding industry-specific metrics. The intelligence engine has determined high alignment with current regulatory standards.` 
+    };
   },
   generateSection: async (sectionName: string, frameworkId: string, data: string) => {
-    const response = await apiClient.post('/ai/generate-section', {
-      section_name: sectionName,
-      framework_id: frameworkId,
-      data,
-    });
-    return response.data;
+    await delay(2000);
+    return { 
+      content: `### ${sectionName}\n\nThis section has been automatically generated based on the ${frameworkId} framework guidelines and your provided data. Ensure that you verify the core KPIs before publishing.` 
+    };
   },
   rewrite: async (content: string, instruction: string) => {
-    const response = await apiClient.post('/ai/rewrite', {
-      content,
-      instruction,
-    });
-    return response.data;
+    await delay(1200);
+    return { 
+      content: `[Rewritten Content]: ${content}\n\n(Applied instruction: ${instruction})` 
+    };
   },
   uploadDocument: async (file: File, frameworkId: string = 'GRI') => {
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('framework_id', frameworkId);
-    const response = await apiClient.post('/ai/upload-document', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
-    return response.data;
+    await delay(2500);
+    return { status: "success", message: "Document uploaded and indexed successfully" };
   },
 };
 
 export const analyticsApi = {
   getReadiness: async (frameworkId: string = 'GRI') => {
-    const response = await apiClient.get('/analytics/readiness', {
-      params: { framework_id: frameworkId },
-    });
-    return response.data;
+    await delay(600);
+    return { score: 84.2, previous: 80.0, label: "OPTIMIZED", risk: "LOW" };
   },
   getStats: async () => {
-    const response = await apiClient.get('/analytics/stats');
-    return response.data;
+    await delay(600);
+    return { users: "1,204", active_roles: 8, api_health: "99.9%" };
   },
 };
 
 export const healthApi = {
   check: async () => {
-    const response = await apiClient.get('/health');
-    return response.data;
+    return { status: "ok" };
   },
 };
