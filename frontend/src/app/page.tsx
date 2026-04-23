@@ -19,10 +19,7 @@ const LandingPage = () => {
           </div>
           
           <div className="hidden md:flex items-center gap-8 text-sm font-medium text-white/60">
-            <a href="#features" className="hover:text-white transition-colors">Platform</a>
-            <a href="#solutions" className="hover:text-white transition-colors">Solutions</a>
-            <a href="#frameworks" className="hover:text-white transition-colors">Frameworks</a>
-            <a href="#pricing" className="hover:text-white transition-colors">Intelligence</a>
+            <a href="#features" className="hover:text-white transition-colors">Platform Features</a>
           </div>
 
           <div className="flex items-center gap-4">
