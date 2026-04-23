@@ -26,11 +26,8 @@ const LandingPage = () => {
           </div>
 
           <div className="flex items-center gap-4">
-            <Link href="/login" className="text-sm font-medium text-white/70 hover:text-white transition-colors">
-              Login
-            </Link>
             <Link href="/dashboard" className="px-5 py-2.5 rounded-full bg-white text-black text-sm font-bold hover:bg-white/90 transition-all">
-              Launch Platform
+              Launch App
             </Link>
           </div>
         </div>
@@ -46,10 +43,7 @@ const LandingPage = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
           >
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-blue-500/30 bg-blue-500/10 text-blue-400 text-xs font-bold uppercase tracking-wider mb-8">
-              <Zap className="w-3 h-3 fill-current" />
-              Next-Gen Sustainability Intelligence
-            </div>
+
             
             <h1 className="text-6xl md:text-8xl font-bold tracking-tighter mb-8 leading-[1.1]">
               Automate ESG <br /> 
@@ -91,9 +85,24 @@ const LandingPage = () => {
                 </div>
               </div>
               <div className="pt-20 pb-12 px-8 flex flex-col md:flex-row gap-8">
-                 <div className="flex-1 h-64 bg-white/5 rounded-xl border border-white/5 animate-pulse" />
-                 <div className="flex-1 h-64 bg-white/5 rounded-xl border border-white/5 animate-pulse" />
-                 <div className="flex-1 h-64 bg-white/5 rounded-xl border border-white/5 animate-pulse" />
+                 <div className="flex-1 h-64 bg-white/5 rounded-xl border border-white/20 p-6 flex flex-col">
+                   <div className="w-10 h-10 rounded-full bg-blue-500/20 mb-4" />
+                   <div className="w-3/4 h-4 bg-white/20 rounded mb-2" />
+                   <div className="w-1/2 h-4 bg-white/10 rounded" />
+                   <div className="mt-auto w-full h-24 bg-white/5 rounded-lg border border-white/5" />
+                 </div>
+                 <div className="flex-1 h-64 bg-white/5 rounded-xl border border-white/20 p-6 flex flex-col">
+                   <div className="w-10 h-10 rounded-full bg-emerald-500/20 mb-4" />
+                   <div className="w-full h-4 bg-white/20 rounded mb-2" />
+                   <div className="w-2/3 h-4 bg-white/10 rounded" />
+                   <div className="mt-auto w-full h-24 bg-white/5 rounded-lg border border-white/5" />
+                 </div>
+                 <div className="flex-1 h-64 bg-white/5 rounded-xl border border-white/20 p-6 flex flex-col">
+                   <div className="w-10 h-10 rounded-full bg-purple-500/20 mb-4" />
+                   <div className="w-5/6 h-4 bg-white/20 rounded mb-2" />
+                   <div className="w-1/3 h-4 bg-white/10 rounded" />
+                   <div className="mt-auto w-full h-24 bg-white/5 rounded-lg border border-white/5" />
+                 </div>
               </div>
             </div>
             
