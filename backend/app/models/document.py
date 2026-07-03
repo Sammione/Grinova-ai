@@ -1,26 +1,22 @@
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Text
-from sqlalchemy.sql import func
-from app.db.session import Base
+from pydantic import BaseModel, Field
+from typing import Optional
+from datetime import datetime
 
-class Document(Base):
-    __tablename__ = "documents"
+class Document(BaseModel):
+    id: Optional[str] = None
+    filename: str
+    content_type: Optional[str] = None
+    file_path: Optional[str] = None
+    framework_id: Optional[str] = None
+    status: str = "processed"
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: Optional[datetime] = None
 
-    id = Column(Integer, primary_key=True, index=True)
-    filename = Column(String(255), nullable=False)
-    content_type = Column(String(100))
-    file_path = Column(String(500))
-    framework_id = Column(String(50))
-    status = Column(String(50), default="processed")  # pending, processed, error
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
-
-class Extraction(Base):
-    __tablename__ = "extractions"
-
-    id = Column(Integer, primary_key=True, index=True)
-    document_id = Column(Integer, ForeignKey("documents.id"))
-    framework_id = Column(String(50))
-    section_name = Column(String(255))
-    content = Column(Text)
-    confidence_score = Column(Integer)
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
+class Extraction(BaseModel):
+    id: Optional[str] = None
+    document_id: str
+    framework_id: Optional[str] = None
+    section_name: Optional[str] = None
+    content: Optional[str] = None
+    confidence_score: Optional[int] = None
+    created_at: datetime = Field(default_factory=datetime.utcnow)

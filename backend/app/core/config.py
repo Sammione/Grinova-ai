@@ -6,13 +6,7 @@ class Settings(BaseSettings):
     API_V1_STR: str = "/api/v1"
     
     OPENAI_API_KEY: str = ""
-    DATABASE_URL: str = "sqlite:///./sustainability.db"
-    
-    @property
-    def SQLALCHEMY_DATABASE_URI(self) -> str:
-        if self.DATABASE_URL.startswith("postgres://"):
-            return self.DATABASE_URL.replace("postgres://", "postgresql://", 1)
-        return self.DATABASE_URL
+    FIREBASE_CREDENTIALS: str = ""
 
     JWT_SECRET: str = "fallback_secret"
     JWT_ALGORITHM: str = "HS256"
