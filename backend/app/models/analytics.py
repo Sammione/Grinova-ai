@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field
 from typing import Optional, List
-from datetime import datetime
+from datetime import datetime, timezone
 
 class ScoreHistory(BaseModel):
     id: Optional[str] = None
@@ -14,7 +14,7 @@ class ScoreHistory(BaseModel):
     carbon_score: Optional[float] = None
     diversity_score: Optional[float] = None
     forecast_score: Optional[float] = None
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class Organization(BaseModel):
     id: Optional[str] = None
@@ -23,7 +23,7 @@ class Organization(BaseModel):
     current_score: float = 0.0
     current_status: str = "Needs Improvement"
     risk_level: str = "Medium"
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: Optional[datetime] = None
     score_history: List[ScoreHistory] = []
 
@@ -31,14 +31,14 @@ class ActivityLog(BaseModel):
     id: Optional[str] = None
     user_name: Optional[str] = None
     action: Optional[str] = None
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class Insight(BaseModel):
     id: Optional[str] = None
     type: Optional[str] = None
     title: Optional[str] = None
     description: Optional[str] = None
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class ActionPlan(BaseModel):
     id: Optional[str] = None
@@ -48,7 +48,7 @@ class ActionPlan(BaseModel):
     status: str = "Pending"
     impact: int = 5
     effort: int = 5
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class QuantitativeMetric(BaseModel):
     id: Optional[str] = None
@@ -57,4 +57,4 @@ class QuantitativeMetric(BaseModel):
     value: Optional[float] = None
     unit: Optional[str] = None
     period: Optional[str] = None
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))

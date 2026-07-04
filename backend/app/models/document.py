@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field
 from typing import Optional
-from datetime import datetime
+from datetime import datetime, timezone
 
 class Document(BaseModel):
     id: Optional[str] = None
@@ -9,7 +9,7 @@ class Document(BaseModel):
     file_path: Optional[str] = None
     framework_id: Optional[str] = None
     status: str = "processed"
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: Optional[datetime] = None
 
 class Extraction(BaseModel):
@@ -19,4 +19,4 @@ class Extraction(BaseModel):
     section_name: Optional[str] = None
     content: Optional[str] = None
     confidence_score: Optional[int] = None
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))

@@ -5,7 +5,7 @@ from app.services.framework_engine import framework_engine
 from app.services.document_service import document_service
 import shutil
 import os
-from datetime import datetime
+from datetime import datetime, timezone
 from app.db.supabase import get_db
 from app.models import analytics, document
 from app.services.scoring_engine import scoring_engine
@@ -89,7 +89,7 @@ async def upload_document(
             new_activity = analytics.ActivityLog(
                 user_name="Admin",
                 action=f"Uploaded document: {file.filename}"
-            ).model_dump(exclude_none=True)
+            ).model_dump(mode="json", exclude_none=True)
             db.table("activity_logs").insert(new_activity).execute()
             
             new_doc = document.Document(
@@ -98,7 +98,7 @@ async def upload_document(
                 file_path=file_path,
                 framework_id=framework_id,
                 status="processed"
-            ).model_dump(exclude_none=True)
+            ).model_dump(mode="json", exclude_none=True)
             db.table("documents").insert(new_doc).execute()
             
             metrics_res = db.table("quantitative_metrics").select("*").eq("organization_id", org_id).execute()
@@ -122,7 +122,7 @@ async def upload_document(
             
             new_history = analytics.ScoreHistory(
                 organization_id=org_id,
-                period_name=f"Ingestion {datetime.now().strftime('%m/%d %H:%M')}",
+                period_name=f"Ingestion {datetime.now(timezone.utc).strftime('%m/%d %H:%M')}",
                 overall_score=new_data["overall_score"],
                 env_score=new_data["breakdown"]["Environmental"],
                 soc_score=new_data["breakdown"]["Social"],
@@ -131,7 +131,7 @@ async def upload_document(
                 carbon_score=new_data["breakdown"].get("Carbon", 80),
                 diversity_score=new_data["breakdown"].get("Diversity", 88),
                 forecast_score=new_data["forecast_score"]
-            ).model_dump(exclude_none=True)
+            ).model_dump(mode="json", exclude_none=True)
             db.table("score_history").insert(new_history).execute()
             
             for plan in new_data.get("action_plans", []):
@@ -141,7 +141,7 @@ async def upload_document(
                     description=plan["description"],
                     impact=plan.get("impact", 5),
                     effort=plan.get("effort", 5)
-                ).model_dump(exclude_none=True)).execute()
+                ).model_dump(mode="json", exclude_none=True)).execute()
                 
             gw = new_data.get("greenwashing", {})
             if gw.get("detected"):
@@ -149,7 +149,7 @@ async def upload_document(
                     type="greenwashing",
                     title="AI Greenwashing Alert",
                     description=gw.get("reason", "Inconsistencies detected in uploaded documents.")
-                ).model_dump(exclude_none=True)).execute()
+                ).model_dump(mode="json", exclude_none=True)).execute()
         
         return {
             "filename": file.filename,
