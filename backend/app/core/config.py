@@ -6,7 +6,8 @@ class Settings(BaseSettings):
     API_V1_STR: str = "/api/v1"
     
     OPENAI_API_KEY: str = ""
-    FIREBASE_CREDENTIALS: str = ""
+    SUPABASE_URL: str = ""
+    SUPABASE_KEY: str = ""
 
     JWT_SECRET: str = "fallback_secret"
     JWT_ALGORITHM: str = "HS256"
