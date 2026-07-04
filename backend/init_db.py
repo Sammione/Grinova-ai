@@ -18,7 +18,7 @@ def init_db():
                 current_score=84.2,
                 current_status="OPTIMIZED",
                 risk_level="LOW"
-            ).model_dump(exclude_none=True)
+            ).model_dump(mode="json", exclude_none=True, exclude={"score_history"})
             
             insert_res = db.table("organizations").insert(org).execute()
             if not insert_res.data:
@@ -37,7 +37,7 @@ def init_db():
                 {"period_name": "Q2 2026", "overall_score": 84.2, "env_score": 85, "soc_score": 72, "gov_score": 90, "supply_chain_score": 65, "carbon_score": 80, "diversity_score": 88},
             ]
             for h in histories:
-                db.table("score_history").insert(analytics.ScoreHistory(organization_id=org_id, **h).model_dump(exclude_none=True)).execute()
+                db.table("score_history").insert(analytics.ScoreHistory(organization_id=org_id, **h).model_dump(mode="json", exclude_none=True)).execute()
 
             # Seed Activity Logs
             activities = [
@@ -46,7 +46,7 @@ def init_db():
                 {"user_name": "Marcus V.", "action": "Updated GRI Metadata"}
             ]
             for act in activities:
-                db.table("activity_logs").insert(analytics.ActivityLog(**act).model_dump(exclude_none=True)).execute()
+                db.table("activity_logs").insert(analytics.ActivityLog(**act).model_dump(mode="json", exclude_none=True)).execute()
 
             # Seed Insights
             insights = [
@@ -55,7 +55,7 @@ def init_db():
                 {"type": "framework", "title": "SASB Alignment", "description": "Your current governance disclosures meet 100% of SASB requirements for Finance sector."}
             ]
             for ins in insights:
-                db.table("insights").insert(analytics.Insight(**ins).model_dump(exclude_none=True)).execute()
+                db.table("insights").insert(analytics.Insight(**ins).model_dump(mode="json", exclude_none=True)).execute()
 
             print("Seeding complete.")
         else:
