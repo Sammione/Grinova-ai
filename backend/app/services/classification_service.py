@@ -3,7 +3,7 @@ from typing import List, Dict, Any
 from app.models.analytics import Classification, FrameworkDetection
 from app.services.chunking_service import ChunkedDocument
 from langchain_openai import ChatOpenAI
-from langchain.prompts import PromptTemplate
+from langchain_core.prompts import PromptTemplate
 from langchain_core.output_parsers import JsonOutputParser
 
 class ClassificationService:

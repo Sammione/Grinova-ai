@@ -2,7 +2,7 @@ from typing import Dict, Any, List
 from app.models.analytics import ScoreDetail, Insight, EvidenceData
 from app.services.rag_service import rag_service
 from langchain_openai import ChatOpenAI
-from langchain.prompts import PromptTemplate
+from langchain_core.prompts import PromptTemplate
 from langchain_core.output_parsers import JsonOutputParser
 from pydantic import BaseModel, Field
 
