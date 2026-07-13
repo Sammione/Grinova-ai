@@ -1,9 +1,10 @@
 import os
-from typing import List
+from typing import List, Dict, Any
 from langchain_community.vectorstores import Chroma
 from langchain_openai import OpenAIEmbeddings
-from langchain_text_splitters import RecursiveCharacterTextSplitter
+from langchain_core.documents import Document as LangchainDocument
 from app.core.config import settings
+from app.services.chunking_service import ChunkedDocument
 
 class RAGService:
     def __init__(self):
@@ -31,34 +32,46 @@ class RAGService:
             self._last_init_error = str(e)
             print(f"Warning: Failed to initialize Vector Store. Is OPENAI_API_KEY valid? Error: {e}")
 
-    async def add_documents(self, texts: List[str], metadatas: List[dict] = None):
+    async def add_chunks(self, chunks: List[ChunkedDocument]):
+        """
+        Takes semantically chunked documents and adds them to Chroma DB.
+        """
         self._init_vector_store()
         if self.vector_store is None:
             error_msg = getattr(self, "_last_init_error", "Unknown Error")
             raise ValueError(f"Vector store not initialized. Init Error: {error_msg}")
             
-        text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size=1000,
-            chunk_overlap=100
-        )
-        docs = text_splitter.create_documents(texts, metadatas=metadatas)
+        docs = []
+        for chunk in chunks:
+            metadata = chunk.metadata.copy()
+            metadata["page_number"] = chunk.page_number
+            docs.append(LangchainDocument(page_content=chunk.text, metadata=metadata))
+            
         self.vector_store.add_documents(docs)
 
-    async def query(self, query: str, framework_id: str = None, k: int = 4) -> str:
+    async def query(self, query: str, k: int = 4) -> List[Dict[str, Any]]:
+        """
+        Stage 5: RAG Search
+        Uses semantic search to find evidence. Returns evidence WITH page number and context.
+        """
         self._init_vector_store()
         if self.vector_store is None:
-            return "Knowledge base not available. Please configure OpenAI API key."
+            return []
             
-        filter_dict = {}
-        if framework_id:
-            filter_dict["framework_id"] = framework_id
-            
-        results = self.vector_store.similarity_search(
+        results = self.vector_store.similarity_search_with_relevance_scores(
             query, 
-            k=k,
-            filter=filter_dict if filter_dict else None
+            k=k
         )
         
-        return "\n\n".join([doc.page_content for doc in results])
+        # results is a list of tuples (Document, score)
+        formatted_results = []
+        for doc, score in results:
+            formatted_results.append({
+                "content": doc.page_content,
+                "metadata": doc.metadata,
+                "score": score
+            })
+            
+        return formatted_results
 
 rag_service = RAGService()

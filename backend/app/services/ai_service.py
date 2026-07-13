@@ -1,89 +1,97 @@
 import openai
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 from app.core.config import settings
-
 from app.services.rag_service import rag_service
+from langchain_openai import ChatOpenAI
+from langchain.prompts import PromptTemplate
+from langchain_core.output_parsers import JsonOutputParser
+from pydantic import BaseModel, Field
+
+class AIInsightOutput(BaseModel):
+    title: str
+    summary: str
+    evidence: str = Field(description="Exact quote from the report. MUST be 'No supporting evidence found in the uploaded report.' if missing.")
+    page_number: str
+    confidence_score: float
+    framework: str
+    severity: str
+    recommendation: str
+    business_impact: str
+    priority: str
 
 class AIService:
     def __init__(self):
-        self.client = openai.OpenAI(api_key=settings.OPENAI_API_KEY)
+        self.llm = ChatOpenAI(model="gpt-4-turbo-preview", temperature=0)
 
-    async def get_response(self, prompt: str, system_prompt: str = "You are an ESG and Sustainability expert."):
-        response = self.client.chat.completions.create(
-            model="gpt-3.5-turbo",
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": prompt}
-            ],
-            temperature=0.2
-        )
-        return response.choices[0].message.content
-
-    async def framework_specific_qa(self, query: str, framework_id: str, context: str = ""):
-        # If no context provided, search RAG
-        if not context:
-            context = await rag_service.query(query, framework_id=framework_id)
-            
-        system_prompt = f"""
-        You are an expert AI Assistant specialized in the {framework_id} sustainability framework.
-        Your goal is to provide accurate, professional, and framework-compliant advice.
-        Use the provided context to ground your answer. If the context doesn't contain the answer, use your expert knowledge but state that you are doing so.
+    async def generate_recommendation(self, topic: str, current_state_context: str) -> AIInsightOutput:
         """
-        
-        prompt = f"User Query: {query}\n\nRelevant Context:\n{context}"
-        return await self.get_response(prompt, system_prompt)
-
-    async def generate_report_section(self, section_name: str, framework_id: str, data: str):
-        # Enhance with RAG context if needed
-        rag_context = await rag_service.query(f"{framework_id} requirements for {section_name}", framework_id=framework_id)
-        
-        system_prompt = f"You are a senior sustainability report writer. Generate a professional, board-level quality report section for '{section_name}' following {framework_id} standards."
-        prompt = f"Context from Knowledge Base:\n{rag_context}\n\nData to include:\n{data}\n\nRequirements: Use professional tone, include strategic insights, and ensure alignment with {framework_id} metrics."
-        return await self.get_response(prompt, system_prompt)
-
-    async def rewrite_content(self, content: str, rewrite_prompt: str):
-        system_prompt = "You are an elite editor. Rewrite the following content based on the user's instructions while maintaining professional integrity."
-        prompt = f"Original Content:\n{content}\n\nInstruction: {rewrite_prompt}"
-        return await self.get_response(prompt, system_prompt)
-
-    async def evaluate_esg_score(self, context: str):
-        system_prompt = """
-        You are an elite AI ESG Auditor. Based on the provided context (which contains the organization's sustainability reports), evaluate their current ESG standing.
-        You must return a JSON response matching exactly this format:
-        {
-            "scores": {
-                "Environmental": <0-100>,
-                "Social": <0-100>,
-                "Governance": <0-100>,
-                "Supply_Chain": <0-100>,
-                "Carbon": <0-100>,
-                "Diversity": <0-100>
-            },
-            "greenwashing_detection": {
-                "detected": <boolean>,
-                "reason": "<string explaining if any contradictions or overly vague claims were found>"
-            },
-            "action_plans": [
-                {
-                    "title": "<Actionable title>",
-                    "description": "<Detailed step-by-step recommendation>",
-                    "impact": <integer 1-10>,
-                    "effort": <integer 1-10>
-                }
-            ]
-        }
-        Generate 3 action plans. If the context is empty or lacks info, estimate based on industry standards but flag greenwashing.
+        Stage 9: Recommendations
+        Recommendations must consider what already exists.
         """
-        response = self.client.chat.completions.create(
-            model="gpt-3.5-turbo",
-            response_format={"type": "json_object"},
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": f"Context:\n{context}"}
-            ],
-            temperature=0.7
+        parser = JsonOutputParser(pydantic_object=AIInsightOutput)
+        prompt = PromptTemplate(
+            template="""You are a senior ESG advisor. Generate a recommendation for the topic: {topic}.
+CRITICAL INSTRUCTION (Stage 9): You MUST consider what already exists in the report. 
+Do not recommend creating something if it already exists. Instead, recommend expanding or improving it.
+
+Context of what currently exists:
+{context}
+
+\n{format_instructions}\n""",
+            input_variables=["topic", "context"],
+            partial_variables={"format_instructions": "Return JSON matching the schema precisely. Ensure evidence is provided or explicitly state 'No supporting evidence found in the uploaded report.'"}
         )
-        import json
-        return json.loads(response.choices[0].message.content)
+        chain = prompt | self.llm | parser
+        
+        try:
+            result = await chain.ainvoke({"topic": topic, "context": current_state_context})
+            return AIInsightOutput(**result)
+        except Exception as e:
+            print(f"Recommendation generation error: {e}")
+            raise
+
+    async def answer_question(self, query: str) -> AIInsightOutput:
+        """
+        Stage 10 (Explainability) & Stage 14 (Hallucination Prevention) & Stage 15 (Output Format)
+        """
+        parser = JsonOutputParser(pydantic_object=AIInsightOutput)
+        prompt = PromptTemplate(
+            template="""You are an AI ESG Intelligence Platform.
+User Query: {query}
+
+CRITICAL RULES:
+1. Stage 14 (Hallucination Prevention): Before generating any answer, verify if the statement is supported by the context. If NO, you MUST say "No supporting evidence found in the uploaded report."
+2. Never invent metrics, benchmarks, or company information. 
+3. If external data is used, label it clearly as "External Intelligence".
+
+Context from uploaded report:
+{context}
+
+\n{format_instructions}\n""",
+            input_variables=["query", "context"],
+            partial_variables={"format_instructions": "Return JSON matching the strict schema. Include title, summary, evidence, page_number, confidence_score, framework, severity, recommendation, business_impact, priority."}
+        )
+        chain = prompt | self.llm | parser
+        
+        results = await rag_service.query(query, k=10)
+        context = "\n\n".join([f"Page {r['metadata'].get('page_number', '?')}: {r['content']}" for r in results])
+        
+        try:
+            result = await chain.ainvoke({"query": query, "context": context})
+            return AIInsightOutput(**result)
+        except Exception as e:
+            print(f"QA error: {e}")
+            return AIInsightOutput(
+                title="Error Processing Query",
+                summary="An error occurred while processing your request.",
+                evidence="No supporting evidence found in the uploaded report.",
+                page_number="N/A",
+                confidence_score=0.0,
+                framework="N/A",
+                severity="Informational",
+                recommendation="Please try again.",
+                business_impact="None",
+                priority="Low"
+            )
 
 ai_service = AIService()

@@ -19,3 +19,7 @@ reportlab>=4.1.0
 python-dotenv>=1.0.1
 supabase>=2.3.0
 pysqlite3-binary; sys_platform == "linux"
+unstructured[pdf]>=0.12.5
+pdf2image>=1.17.0
+pdfminer.six>=20231228
+pytesseract>=0.3.10

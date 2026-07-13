@@ -1,19 +1,31 @@
 from pydantic import BaseModel, Field
-from typing import Optional, List
+from typing import Optional, List, Dict, Any
 from datetime import datetime, timezone
+
+class ScoreDetail(BaseModel):
+    score: float
+    why: str
+    evidence: str
+    missing_information: List[str]
+    recommendations: List[str]
 
 class ScoreHistory(BaseModel):
     id: Optional[str] = None
     organization_id: str
     period_name: Optional[str] = None
     overall_score: Optional[float] = None
-    env_score: Optional[float] = None
-    soc_score: Optional[float] = None
-    gov_score: Optional[float] = None
-    supply_chain_score: Optional[float] = None
-    carbon_score: Optional[float] = None
-    diversity_score: Optional[float] = None
-    forecast_score: Optional[float] = None
+    
+    # Detailed Scores
+    env_score: Optional[ScoreDetail] = None
+    soc_score: Optional[ScoreDetail] = None
+    gov_score: Optional[ScoreDetail] = None
+    climate_score: Optional[ScoreDetail] = None
+    risk_score: Optional[ScoreDetail] = None
+    reporting_quality: Optional[ScoreDetail] = None
+    disclosure_completeness: Optional[ScoreDetail] = None
+    transparency: Optional[ScoreDetail] = None
+    overall_esg_readiness: Optional[ScoreDetail] = None
+    
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class Organization(BaseModel):
@@ -27,18 +39,33 @@ class Organization(BaseModel):
     updated_at: Optional[datetime] = None
     score_history: List[ScoreHistory] = []
 
-class ActivityLog(BaseModel):
-    id: Optional[str] = None
-    user_name: Optional[str] = None
-    action: Optional[str] = None
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+class EvidenceData(BaseModel):
+    evidence: str
+    page_number: str
+    confidence: float
+    source: str
+    framework_reference: Optional[str] = None
 
 class Insight(BaseModel):
     id: Optional[str] = None
-    type: Optional[str] = None
-    title: Optional[str] = None
-    description: Optional[str] = None
+    type: str # e.g., 'Greenwashing', 'Gap', 'Risk', 'Recommendation'
+    title: str
+    summary: str
+    evidence_data: Optional[EvidenceData] = None
+    framework: Optional[str] = None
+    severity: Optional[str] = None # Critical, High, Medium, Low, Informational
+    recommendation: Optional[str] = None
+    business_impact: Optional[str] = None
+    priority: Optional[str] = None
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class Classification(BaseModel):
+    category: str
+    confidence: float
+
+class FrameworkDetection(BaseModel):
+    framework: str
+    confidence: float
 
 class ActionPlan(BaseModel):
     id: Optional[str] = None
