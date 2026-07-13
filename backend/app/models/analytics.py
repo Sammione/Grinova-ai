@@ -39,6 +39,12 @@ class Organization(BaseModel):
     updated_at: Optional[datetime] = None
     score_history: List[ScoreHistory] = []
 
+class ActivityLog(BaseModel):
+    id: Optional[str] = None
+    user_name: Optional[str] = None
+    action: Optional[str] = None
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
 class EvidenceData(BaseModel):
     evidence: str
     page_number: str
